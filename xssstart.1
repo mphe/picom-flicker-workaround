@@ -17,7 +17,7 @@
 .Os
 .Sh NAME
 .Nm xssstart
-.Nd run a command when X screen saver activates
+.Nd run a command when X screen saver deactivates
 .Sh SYNOPSIS
 .Nm
 .Ar command
@@ -26,8 +26,10 @@
 .Nm
 runs the specified command on
 .Xr XScreenSaver 3
+.Li ScreenSaverOff
+events preceeded by a
 .Li ScreenSaverOn
-events.
+event.
 As long as the command is running, further events are ignored.
 .Sh EXAMPLES
 .Bl -tag -width indent
@@ -51,3 +53,4 @@ Activates the screen saver immediately.
 .Xr xssstate 1
 .Sh AUTHORS
 .An Vadim Vygonets Aq vadik@vygo.net
+.An Marvin Ewald Aq marvin.e@protonmail.com

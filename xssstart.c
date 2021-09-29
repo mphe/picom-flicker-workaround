@@ -14,6 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+// Adapted by Marvin Ewald <marvin.e@protonmail.com>
+
 #include <sys/wait.h>
 
 #include <err.h>
@@ -71,6 +73,7 @@ main(int argc, char *argv[])
 	XEvent		 ev;
 	struct sigaction act = { };
 	int		 evbase, errbase;
+    int ssactive = 0;
 
 	if (argc < 2)
 		errx(2, "usage: xssstart command [argument ...]\n");
@@ -86,18 +89,26 @@ main(int argc, char *argv[])
 	act.sa_flags = SA_NOCLDSTOP | SA_RESTART;
 	if (sigaction(SIGCHLD, &act, NULL) == -1)
 		err(1, "sigaction");
+
 	while (XNextEvent(dpy, &ev) == 0) {
-		if (((XScreenSaverNotifyEvent *)&ev)->state == ScreenSaverOn &&
-		    child == 0) {
-			switch ((child = fork())) {
-			case -1:
-				err(1, "fork");
-			case 0:
-				execvp(argv[1], argv + 1);
-				dpy = NULL;
-				err(1, "exec");
-			}
-		}
+        if (child != 0)
+            continue;
+
+        if (((XScreenSaverNotifyEvent *)&ev)->state == ScreenSaverOn)
+            ssactive = 1;
+        else if (((XScreenSaverNotifyEvent *)&ev)->state == ScreenSaverOff && ssactive)
+        {
+            ssactive = 0;
+            printf("triggered");
+            switch ((child = fork())) {
+                case -1:
+                    err(1, "fork");
+                case 0:
+                    execvp(argv[1], argv + 1);
+                    dpy = NULL;
+                    err(1, "exec");
+            }
+        }
 	}
 	return 0;
 }
